@@ -16,11 +16,12 @@ enum WhisperError: Error {
 
 class WhisperService {
     typealias WhisperDataCompletion = (WhisperData?, WhisperError?) -> ()
+    typealias RepliesDataCompletion = (RepliesData?, WhisperError?) -> ()
     
     private static let host = "prod.whisper.sh"
     private static let popularPath = "/whispers/popular"
     private static let repliesPath = "/whispers/replies"
-    private static let limit = "50"
+    private static let limit = "200"
     
     static func getWhispers(completion: @escaping WhisperDataCompletion) {
         var urlBuilder = URLComponents()
@@ -31,10 +32,25 @@ class WhisperService {
         
         let url = urlBuilder.url!
         
-        makeDataTask(url: url, completion: completion)
+        makeDataTask(url: url, type: WhisperData.self, completion: completion)
     }
     
-    static func makeDataTask(url: URL, completion: @escaping WhisperDataCompletion) {
+    static func getReplies(parentWid: String, completion: @escaping RepliesDataCompletion) {
+        var urlBuilder = URLComponents()
+        urlBuilder.scheme = "https"
+        urlBuilder.host = host
+        urlBuilder.path = repliesPath
+        urlBuilder.queryItems = [
+            URLQueryItem(name: "limit", value: limit),
+            URLQueryItem(name: "wid", value: parentWid)
+        ]
+        
+        let url = urlBuilder.url!
+        
+        makeDataTask(url: url, type: RepliesData.self, completion: completion)
+    }
+    
+    static func makeDataTask<T: Decodable>(url: URL, type: T.Type, completion: @escaping (T?, WhisperError?) -> ()) {
         URLSession.shared.dataTask(with: url) { (data, response, error) in
             DispatchQueue.main.async {
                 guard error == nil else {
@@ -62,8 +78,8 @@ class WhisperService {
                 }
                 
                 do {
-                    let whisperData: WhisperData = try JSONDecoder().decode(WhisperData.self, from: data)
-                    completion(whisperData, nil)
+                    let data = try JSONDecoder().decode(type, from: data)
+                    completion(data, nil)
                 } catch {
                     print(error)
                     print("Unable to decode Whisper response: \(error.localizedDescription)")

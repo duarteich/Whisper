@@ -13,19 +13,30 @@ class WhisperListViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     
     //MARK: - private properties
-    
     private let viewModel = WhisperViewModel()
+    var parentWhisper: Whisper?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Popular"
         setupTableView()
         viewModel.whispers.bind { [weak self] whispers in
-            print(whispers)
             guard let self = self else { return }
-            self.tableView.reloadData()
+            if !whispers.isEmpty {
+                self.tableView.reloadData()
+            }
         }
-        viewModel.fetchWhispers()
+        if let parentWhisper = parentWhisper {
+            title = "Replies"
+            if parentWhisper.replies > 0 {
+                viewModel.fetchReplies(whisper: parentWhisper)
+            } else {
+                print("No replies for this Whisper")
+            }
+            
+        } else {
+            title = "Popular"
+            viewModel.fetchWhispers()
+        }
     }
     
     func setupTableView() {
@@ -54,5 +65,13 @@ extension WhisperListViewController: UITableViewDataSource {
 }
 
 //MARK: - UITableViewDelegate
-extension WhisperListViewController: UITableViewDelegate { }
+extension WhisperListViewController: UITableViewDelegate {
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        guard let repliesViewController = storyboard?.instantiateViewController(withIdentifier: "whisperListViewController") as? WhisperListViewController else { return }
+        repliesViewController.parentWhisper = viewModel.whispers.value[indexPath.row]
+        navigationController?.pushViewController(repliesViewController, animated: true)
+    }
+}
 

@@ -11,7 +11,7 @@
         <!--Whisper List View Controller-->
         <scene sceneID="rk9-e8-L7a">
             <objects>
-                <viewController id="3yU-eP-TBB" customClass="WhisperListViewController" customModule="Whisper" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="whisperListViewController" id="3yU-eP-TBB" customClass="WhisperListViewController" customModule="Whisper" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="tBw-PY-3CM">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
